@@ -64,7 +64,7 @@ The application includes 2 simple unit test (just to show how to test a single c
 
 In order to execute all the tests, you just need to run this command: "php ./vendor/bin/phpunit"
 
-All the functionnalities used in the controller are grouped as Services, and then, these the mentioned integration test is very important to be sure that the core of the app is always good and working.
+All the functionnalities used in the controller are grouped as Services, and then, this integration test is very important to be sure that the core of the app is always good and working.
 
 Remark: in order to make integration tests , and to be able to call the services directly in my container , I defined the configuration file: config/services_test.yaml (to set my service as public in the test environment).
 
