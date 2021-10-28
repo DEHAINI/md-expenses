@@ -74,6 +74,9 @@ Remark: in order to make integration tests , and to be able to call the services
 Some last remarks:
 ==================
 
+** I created an event listener in (/md-expenses/src/EventListener/ExceptionListener.php) in order to catch and handle the errors exceptions related to the call of our API (example: errors in the typing of the routes), and I customized the returned message to be compatible with the returns given by our API. This listener is defined as a service in: "/md-expenses/config/services.yaml"
+
+
 ** Each application with API system should include an authentication phase in order to get some token with expiry date to acces the functions of the API , I did not include this point because its not mentioned in the requirements.
 
 ** This app could be made by using the Symfony bundle: "FOSRestBundle", but I decided to build it in another way

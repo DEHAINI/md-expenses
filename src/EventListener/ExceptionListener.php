@@ -1,7 +1,7 @@
 <?php
 // I added this listener at 28 October 2021
 // I created this event listener in order to catch and handle the errors exceptions related to the call of our API (example: errors in the typing of the routes)
-// and I cutomised the returned message to be compatible with the returns given by our API
+// and I customized the returned message to be compatible with the returns given by our API
 
 // src/EventListener/ExceptionListener.php
 namespace App\EventListener;
