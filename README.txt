@@ -81,5 +81,5 @@ Some last remarks:
 
 ** This app could be made by using the Symfony bundle: "FOSRestBundle", but I decided to build it in another way
 
-** About the "Open API" Schema , i have already began to make it , and I installed the "Swagger Package" inside the APP , and I began to add the necessary annotations, I also installed the "Swagger UI" in the project , you can find it in this link: http://localhost/md-expenses/api/documentation/ , and also, in this link: http://localhost/md-expenses/api/documentation/api.php , i started to put the JSON result, but unfortunately, I have no time to complete it, because I need to submit the test today. If I had more time , I would do it (frankly its the first time that I do a such thing).
+** About the "Open API" Schema , i have already began to make it , and I installed the "Swagger Package" inside the APP , and I began to add the necessary annotations, I also installed the "Swagger UI" in the project , you can find it in this link: http://localhost/md-expenses/api/documentation/ , and also, in this link: http://localhost/md-expenses/api/documentation/api.php , i started to put the JSON result, but unfortunately, I have no time to complete it, because I need to submit the test today. If I had more time , I would do it (frankly its the first time that I do a such documentation).
 
