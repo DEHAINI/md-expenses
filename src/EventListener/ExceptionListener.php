@@ -1,7 +1,7 @@
 <?php
 // I added this listener at 28 October 2021
 // I created this event listener in order to catch and handle the errors exceptions related to the call of our API (example: errors in the typing of the routes)
-// and I customized the returned message to be compatible with the returns given by our API
+// and I customized the returned message to be compatible with the returns given by our API (escpecially that the response should have a json answer)
 
 // src/EventListener/ExceptionListener.php
 namespace App\EventListener;
@@ -17,7 +17,7 @@ class ExceptionListener
         // You get the exception object from the received event
         $exception = $event->getThrowable();
         $message = sprintf(
-            'My Error says: %s with code: %s',
+            'Error: %s with code: %s',
             $exception->getMessage(),
             $exception->getCode()
         );
@@ -35,7 +35,8 @@ class ExceptionListener
             $response->setStatusCode(Response::HTTP_INTERNAL_SERVER_ERROR);
         }
 
-        // here i will customize the error message
+        // here i will customize the error message in order to be compatible with the return of our functions
+        // escpecially that the response should have a json answer
         $errors=array($response);
         $json_return=json_encode(['message'=>"The given route does not correspond to any service in our system, Please refer to README.txt file in order to see how to request our API",'errors'=>$errors]);
         $response->setContent($json_return);
