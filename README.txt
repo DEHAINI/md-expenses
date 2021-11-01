@@ -32,6 +32,8 @@ In order to run the app, follow these steps:
 	so, search your apache configuration file , and then change it (according to your file structure):
 		EXAMPLE: replace: "DocumentRoot /var/www/html" by "DocumentRoot /var/www/html/md-expenses/public"
 
+		then, restart apache server , in order to apply the modifications
+
 ================================================================================================================
 ================================================================================================================
 
