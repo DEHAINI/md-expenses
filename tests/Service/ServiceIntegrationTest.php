@@ -36,7 +36,6 @@ class ServiceIntegrationTest extends KernelTestCase
 
 		$this->entityManager=self::$kernel->getContainer()->get('doctrine')->getManager();
 
-
     }
 
     // i will use this function to empty some tables in the test database in order to preserve the integrity of our tests
@@ -87,8 +86,9 @@ class ServiceIntegrationTest extends KernelTestCase
 
 	}
 
-	// test the list method (list all the objects: expense, or just a given object)
-	public function testApiList()
+	
+	// test the list method (list of only one object)
+	public function testApiListOne()
 	{
 		//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 		//
@@ -96,9 +96,26 @@ class ServiceIntegrationTest extends KernelTestCase
 		//
 		//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-			$jsonData='{"list": 1}'; // here, i am asking to list only one object where id=1 (i am sure that i should find it because the previous function)
+			// first of all, add a new object "expense" into the database, then try to list it
+			$jsonData='{"description": "description-'.(date('YmdHis')).'", "value": "'.(mt_rand(10,1000000)).'"}';
+			$jsonResponse=$this->service->add($jsonData);
 
-			$jsonResponse=$this->service->list($jsonData);
+			// make sure that the received json data has the required information: id_returned (the id of the inserted object)
+			$jsonReceived=$jsonResponse->getContent();
+			$dataReceived = json_decode($jsonReceived, true);
+
+			$this->assertArrayHasKey('id_returned', $dataReceived,"the response does not have a value for: id_returned");
+			$this->assertArrayHasKey('errors', $dataReceived,"the response does not have a value for: errors");
+
+			// make sure that we do not have any generated error after the database insert
+			if(isset($dataReceived['errors']))
+			{
+				$tab_errors=$dataReceived['errors'];
+				$this->assertCount(0,$tab_errors);
+			}
+
+			// now, call the function which list the details of only one object "expense"
+			$jsonResponse=$this->service->listOne($dataReceived['id_returned']);
 
 			// make sure that the received json data has all the required information
 			$jsonReceived=$jsonResponse->getContent();
@@ -126,14 +143,37 @@ class ServiceIntegrationTest extends KernelTestCase
 
 			}
 
+	}
+
+	// test the list method (list all the objects: expense)
+	public function testApiListAll()
+	{
 		//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 		//
-		// repeat the same previous test , but this time, list all the records in the table: "expense"
+		// this time, list all the records in the table: "expense"
 		//
 		//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-			$jsonData='{"list": "all"}'; // here, i am asking to list all the records (i am sure that i have some, because of the previous method: "testApiAdd" )
-			$jsonResponse=$this->service->list($jsonData);
+			// in order to increase the number of objects in the database, add a new object "expense"
+			$jsonData='{"description": "description-'.(date('YmdHis')).'", "value": "'.(mt_rand(10,1000000)).'"}';
+			$jsonResponse=$this->service->add($jsonData);
+
+			// just make sure that the received json data has one required information
+			$jsonReceived=$jsonResponse->getContent();
+			$dataReceived = json_decode($jsonReceived, true);
+
+			$this->assertArrayHasKey('id_returned', $dataReceived,"the response does not have a value for: id_returned");
+			$this->assertArrayHasKey('errors', $dataReceived,"the response does not have a value for: errors");
+
+			// make sure that we do not have any generated error after the database insert
+			if(isset($dataReceived['errors']))
+			{
+				$tab_errors=$dataReceived['errors'];
+				$this->assertCount(0,$tab_errors);
+			}
+
+			// now , list all the objects "expense" from the database
+			$jsonResponse=$this->service->listAll();
 
 			// make sure that the received json data has all the required information
 			$jsonReceived=$jsonResponse->getContent();
@@ -172,12 +212,32 @@ class ServiceIntegrationTest extends KernelTestCase
 			}
 	}
 
+	
 	// test the update method (update an expense in test database, starting from the value of the ID)
 	public function testApiUpdate()
 	{
-		// try to update a given object "expense" where ID=1 (I am sure that this ID does exist in the table because of the previous tests)
+
+		// add a new object "expense" into the database, then try to update it
+		$jsonData='{"description": "description-'.(date('YmdHis')).'", "value": "'.(mt_rand(10,1000000)).'"}';
+		$jsonResponse=$this->service->add($jsonData);
+
+		// make sure that the received json data has the required information: id_returned (the id of the inserted object)
+		$jsonReceived=$jsonResponse->getContent();
+		$dataReceived = json_decode($jsonReceived, true);
+
+		$this->assertArrayHasKey('id_returned', $dataReceived,"the response does not have a value for: id_returned");
+		$this->assertArrayHasKey('errors', $dataReceived,"the response does not have a value for: errors");
+
+		// make sure that we do not have any generated error after the database insert
+		if(isset($dataReceived['errors']))
+		{
+			$tab_errors=$dataReceived['errors'];
+			$this->assertCount(0,$tab_errors);
+		}
+
+		// try to update the newly added object "expense"
 		$jsonData='{"description": "description updated at '.(time()).'","value":"'.(mt_rand(1000,1000000)).'"}';
-		$jsonResponse=$this->service->update(1,$jsonData);
+		$jsonResponse=$this->service->update($dataReceived['id_returned'],$jsonData);
 
 		
 		// make sure that the received json data has all the required information
@@ -197,14 +257,31 @@ class ServiceIntegrationTest extends KernelTestCase
 		}
 
 	}
-
+	
 	// test the delete method (delete an expense in test database, starting from the value of the ID)
 	public function testApiDelete()
 	{
-		// try to delete a given object "expense" where ID=1 (I am sure that this ID does exist in the table because of the previous tests)
-		$jsonResponse=$this->service->delete(1);
+		// add a new object "expense" into the database, then try to delete it
+		$jsonData='{"description": "description-'.(date('YmdHis')).'", "value": "'.(mt_rand(10,1000000)).'"}';
+		$jsonResponse=$this->service->add($jsonData);
 
-		
+		// make sure that the received json data has the required information: id_returned (the id of the inserted object)
+		$jsonReceived=$jsonResponse->getContent();
+		$dataReceived = json_decode($jsonReceived, true);
+
+		$this->assertArrayHasKey('id_returned', $dataReceived,"the response does not have a value for: id_returned");
+		$this->assertArrayHasKey('errors', $dataReceived,"the response does not have a value for: errors");
+
+		// make sure that we do not have any generated error after the database insert
+		if(isset($dataReceived['errors']))
+		{
+			$tab_errors=$dataReceived['errors'];
+			$this->assertCount(0,$tab_errors);
+		}
+
+		// try to delete the newly added object "expense"
+		$jsonResponse=$this->service->delete($dataReceived['id_returned']);
+
 		// make sure that the received json data has all the required information
 		$jsonReceived=$jsonResponse->getContent();
 		$dataReceived = json_decode($jsonReceived, true);
@@ -222,7 +299,7 @@ class ServiceIntegrationTest extends KernelTestCase
 		}
 
 	}
-
+	
 	// keep this method at the end of the class
 	// it will delete everything from the test table
 	public function testdeleteTables()

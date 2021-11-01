@@ -42,24 +42,26 @@ class ApiServices
         $value=(isset($data['value']))?($data['value']):"";
 
         // check if the given values are empty
+        // then add an error
         if( (empty($description)) || (empty($value)) || ((count($data))==0) )
         {
             $errors[]="Expecting mandatory values: description and value !!! try again";
             $http_code=Response::HTTP_NOT_FOUND;
             $message="Your given information are incorrect";
         }
-        else
+        
+        // if all the required values are set
+        // and at the same time the given value for the expense is not numeric
+        // then add an error
+        if( (!( (empty($description)) || (empty($value)) || ((count($data))==0) )) && (!(is_numeric($value))) )
         {
-            // check if the given value is numeric
-            if(!(is_numeric($value)))
-            {
-                $errors[]="The given value is not numeric";
-                $http_code=Response::HTTP_NOT_FOUND;
-                $message="Your given information are incorrect";
-            }
+            $errors[]="The given value is not numeric";
+            $http_code=Response::HTTP_NOT_FOUND;
+            $message="Your given information are incorrect";
 
         }
 
+        // if we do not have any errors, then proceed with the treatment
         if((count($errors))==0) // no errors found, then insert into the db
         {
             $object_expense=new Expense();
@@ -79,66 +81,67 @@ class ApiServices
         return new JsonResponse(['message'=>$message,'id_returned'=>$id_returned,'errors'=>$errors,'http_code'=>$http_code], $http_code);
     }
 
-    // takes a json formatted data (received from a json request in the controller)
-    // this method takes the argument: list (inside the json data),
-    // if list is an integer then. it will consider it as the id of the object to be listed
-    // if list="all", then it will display all the objects "expense" in the db
-    // if list is empty, then it will display all the records also
-    public function list($jsonData): JsonResponse
+    // list all the objects "expense" from the database
+    public function listAll(): JsonResponse
     {
-        $data = json_decode($jsonData, true);
-
         $errors=array(); // in this array, stock all the errors you might find
         $http_code=""; // the returned http code
         $message=""; // a message to be returned
         $list_expenses=array(); // supposed to include the list of returned expenses
 
-        $list=(isset($data['list']))?($data['list']):"";
+        $http_code=Response::HTTP_OK;
+        $message="Displaying of all the records of expenses in the database";
+        $result_expenses=$this->ExpenseRepository->findAll();
 
-        // check if the given value of list is empty
-        if( (empty($list)) || ($list=="all") )
+        if((count($result_expenses))>0)
+        {
+            foreach($result_expenses as $object_expense)
+            {
+                $list_expenses[]=$object_expense->toArray();
+            }
+        }
+
+        return new JsonResponse(['message'=>$message,'errors'=>$errors,'list_expenses'=>$list_expenses,'http_code'=>$http_code], $http_code);
+    }
+
+    // list the details of one object "expense" (starting from the value of: ID)
+    public function listOne($id): JsonResponse
+    {
+        $errors=array(); // in this array, stock all the errors you might find
+        $http_code=""; // the returned http code
+        $message=""; // a message to be returned
+        $list_expenses=array(); // supposed to include the list of returned expenses
+
+        $id=(int)$id;
+
+        if(is_int($id)) // then , we will consider this value as the "id" of the object "expense" to be fetched
+        {
+            $object_expense_check=$this->ExpenseRepository->findOneBy(array('id'=>$id));
+        }
+        
+        if($object_expense_check) // then we really found the object !!
         {
             $http_code=Response::HTTP_OK;
-            $message="Displaying of all the records of expenses in the database";
-            $result_expenses=$this->ExpenseRepository->findAll();
-
-            if((count($result_expenses))>0)
-            {
-                foreach($result_expenses as $object_expense)
-                {
-                    $list_expenses[]=$object_expense->toArray();
-                }
-            }
+            $message="Displaying of the object 'expense' having the id=".$id;
+            $list_expenses[]=$object_expense_check->toArray();
         }
-        else
+
+        if(!($object_expense_check)) // then we did not find any object in the database
         {
-            if(is_int($list)) // then , we will consider this value as the "id" of the object "expense" to be fetched
-            {
-                $object_expense_check=$this->ExpenseRepository->findOneBy(array('id'=>$list));
+            $http_code=Response::HTTP_NOT_FOUND;
+            $message="The given integer does not correspond to any ID in the database";
+            $errors[]="The given ID is not correct";
+        }
 
-                if($object_expense_check)
-                {
-                    $http_code=Response::HTTP_OK;
-                    $message="Displaying of the object 'expense' having the id=".$list;
-                    $list_expenses[]=$object_expense_check->toArray();
-                }
-                else
-                {
-                    $http_code=Response::HTTP_NOT_FOUND;
-                    $message="The given integer does not correspond to any ID in the database";
-                    $errors[]="The given ID is not correct";
-                }
-            }
-            else
-            {
-                // then the given value is not an integer, and its not empty, so its a string
-                $http_code=Response::HTTP_NOT_FOUND;
-                $message="The given value for 'list' is not valid";
-                $errors[]="Error , the parameter 'list' is not valid";
-
-            }
+        if(!(is_int($id))) // the given id is not an integer, raise an error
+        {
+            // then the given value is not an integer, and its not empty, so its a string
+            $http_code=Response::HTTP_NOT_FOUND;
+            $message="The given value for 'id' is not valid";
+            $errors[]="Error , the parameter 'id' is not valid";
 
         }
+
 
         return new JsonResponse(['message'=>$message,'errors'=>$errors,'list_expenses'=>$list_expenses,'http_code'=>$http_code], $http_code);
     }
@@ -157,9 +160,10 @@ class ApiServices
 
         $data = json_decode($jsonData, true);
 
+        $object_updated="NO UPDATE"; // by default put the phrase: "NO UPDATE" in this variable, and change it later one we have an update
+
         if((count($errors))==0)
         {
-
             empty($data['description']) ? true : $object_expense->setDescription($data['description']);
             ( (empty($data['value'])) || (!(is_numeric($data['value']))) ) ? true : $object_expense->setValue($data['value']);
 
@@ -167,10 +171,6 @@ class ApiServices
             $this->entityManager->flush();
 
             $object_updated=$object_expense->toArray();
-        }
-        else
-        {
-            $object_updated="NO UPDATE";
         }
 
         return new JsonResponse(['object_updated'=>$object_updated,'errors'=>$errors], Response::HTTP_OK);
@@ -184,16 +184,17 @@ class ApiServices
 
         $object_expense = $this->ExpenseRepository->findOneBy(['id' => $id]);
 
+        // put some default values in the variables
+        // and change them later , once the delete process is succeeded
+        $status="The given ID does not correspond to any record in the database";
+        $errors[]="The given ID does not correspond to any record !!!";
+
         if($object_expense)
         {
             $this->entityManager->remove($object_expense);
             $this->entityManager->flush();
             $status='Expense deleted';
-        }
-        else
-        {
-            $status="The given ID does not correspond to any record in the database";
-            $errors[]="The given ID does not correspond to any record !!!";
+            $errors=array();
         }
 
         return new JsonResponse(['status' => $status,'errors'=>$errors], Response::HTTP_OK);

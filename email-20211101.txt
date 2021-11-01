@@ -1,0 +1,26 @@
+==================================================
+I received this email on Monday, 01 November 2021
+==================================================
+
+In regards to Mahmoud’s technical test we have some feedback
+
+    The documentation was very good
+    The implementation of the RESTful API was not correct.
+
+The urls for the RESTful API should be:
+
+List expenses: GET http://localhost/v1/expenses
+
+Create an expense: POST http://localhost/v1/expenses
+
+Get single expense: GET http://localhost/v1/expenses/{id}
+
+Update expense: PUT http://localhost/v1/expenses/{id}
+
+Delete expense: DELETE http://localhost/v1/expenses/{id}
+
+Where {id} refers to the ID of the expense
+
+Unit tests should not be dependent on data from a previous unit test. The tests should be able to run independently or in a random order.
+
+There are too many if else statements in his service methods making the code difficult to read. Consider following the return early concept (https://szymonkrajewski.pl/why-should-you-return-early/) to make the code more readable.

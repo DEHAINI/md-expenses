@@ -1,10 +1,14 @@
 ==========================
-Wednesday, 27 October 2021
+Monday, 01 November 2021
 ==========================
+
+This Application was updated according to the email I received on Monday, 01 November 2021, you can find the text of the email in the file: "email-20211101.txt" (included in the folder of this App).
 
 This application was made under the latest version of Symfony framework (at the date of: 27 October 2021), and according to the requirements given in the file: "PHP_Backend_Developer_Technical_Test.pdf" (included in the root file of the application).
 
 This aplication uses the MYSQL server to persist data, it uses 2 databases, the first is called: "md-expenses" (the main database), and the other is: "md-expenses_test" (to be used by php unit/integration tests).
+
+This application is tested under Linux operating system and apache server.
 
 ================================================================================================================
 ================================================================================================================
@@ -23,6 +27,11 @@ In order to run the app, follow these steps:
 	6) in order to create your test database, execute this command: "php bin/console doctrine:database:create --env=test"
 	7) execute the command: "php bin/console doctrine:schema:create --env=test" to create the tables inside the test database
 
+	8) As requested in the given test for the routes, in order to be able to call the URLs of this API , you need to change the default value of the variable: "DocumentRoot" inside the apache configuration,
+
+	so, search your apache configuration file , and then change it (according to your file structure):
+		EXAMPLE: replace: "DocumentRoot /var/www/html" by "DocumentRoot /var/www/html/md-expenses/public"
+
 ================================================================================================================
 ================================================================================================================
 
@@ -36,23 +45,20 @@ All of the following commands, return json formated data as a response, the json
 Open the terminal of your computer,
 
 1) Insert an expense into the database, the following command will insert a new record in the database:
-	* curl -X POST http://localhost/md-expenses/public/add/expense/ -H 'Content-Type: application/json' -d '{"description": "description test", "value": "100.23"}'
+	* curl -X POST http://localhost/v1/expenses/ -H 'Content-Type: application/json' -d '{"description": "description test", "value": "100.23"}'
 
 2) Fetch an expense from the database:
 		* the following command example will list the details of the expense of ID=1
-		  curl -X POST http://localhost/md-expenses/public/list/expenses/ -H 'Content-Type: application/json' -d '{"list": 1}'
+		  curl -X GET http://localhost/v1/expenses/1
 
 		* the following command example will list all the records in the table "expense"
-		  curl -X POST http://localhost/md-expenses/public/list/expenses/ -H 'Content-Type: application/json' -d '{"list": "all"}'
-
-		* Also, if you left the variable "list" empty, you will get the list of all the records, example:
-		  curl -X POST http://localhost/md-expenses/public/list/expenses/ -H 'Content-Type: application/json' -d '{"list": ""}'
+		  curl -X GET http://localhost/v1/expenses
 
 3) Update a given object "expense" (starting from the value of the ID), example, the following command will update the fields of the object having: ID=1
-	* curl -X PUT http://localhost/md-expenses/public/expenses/update/1/ -H 'Content-Type: application/json' -d '{"description": "description test - updated","value":"20000.23"}'
+	* curl -X PUT http://localhost/v1/expenses/1 -H 'Content-Type: application/json' -d '{"description": "description test - updated","value":"20000.23"}'
 
 4) Delete a given object "expense", starting from the ID value, example, the following command will delete the object having: ID=1
-	* curl -X DELETE http://localhost/md-expenses/public/expenses/delete/1/ 
+	* curl -X DELETE http://localhost/v1/expenses/1
 
 ================================================================================================================
 ================================================================================================================
@@ -60,13 +66,26 @@ Open the terminal of your computer,
 Unit tests and Integration tests
 =================================
 
-The application includes 2 simple unit test (just to show how to test a single class and mocking the depedencies) , and one integration test which call the test database and make the needed assertions (its under: "md-expenses/tests/Service")
+** The application includes 2 simple unit test (just to show how to test a single class and mocking the depedencies) , and one integration test which call the test database and make the needed assertions (its under: "md-expenses/tests/Service")
 
-In order to execute all the tests, you just need to run this command: "php ./vendor/bin/phpunit"
+** In order to execute all the tests, you just need to run this command: "php ./vendor/bin/phpunit"
 
-All the functionnalities used in the controller are grouped as Services, and then, this integration test is very important to be sure that the core of the app is always good and working.
+** Unit tests are not dependent on data from a previous unit test. The tests are able to run independently or in a random order.
+	For example: to run only the test which update an expense, run the following command: "php ./vendor/bin/phpunit --filter testApiUpdate"
 
-Remark: in order to make integration tests , and to be able to call the services directly in my container , I defined the configuration file: config/services_test.yaml (to set my service as public in the test environment).
+	In the following list, you can find a list of the names of all the tests we have in this app:
+
+		-- testApiAdd: integration test, tests the add a new expense function
+		-- testApiListOne: integration test, tests the function which lists only one object "expense"
+		-- testApiListAll: integration test, tests the function which lists all the objects "expense" from the database
+		-- testApiUpdate: integration test, tests the function which updates a given object "expense"
+		-- testApiDelete: integration test, tests the function which deletes a given object "expense" from the database
+		-- testAddMethod: unit test, tests the function "add" in the controller "expense" 
+		-- testExpenseBehavior: unit test, tests some funtionnality in the entity "expense"
+
+** All the functionnalities used in the controller are grouped as Services, and then, this integration test is very important to be sure that the core of the app is always good and working.
+
+** Remark: in order to make integration tests , and to be able to call the services directly in my container , I defined the configuration file: config/services_test.yaml (to set my service as public in the test environment).
 
 ================================================================================================================
 ================================================================================================================

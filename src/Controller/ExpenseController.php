@@ -11,8 +11,13 @@ use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\HttpFoundation\JsonResponse;
 
 // i created my own service which should do anything i might need in this controller
-// puting functionalities in "Services" make the treatements easier (especially for the unit tests and integration tests)
+// puting functionalities in "Services" makes the treatements easier (especially for the unit tests and integration tests)
 use App\Service\ApiServices;
+
+// its the first version of our API , so lets put "/v1" as prefix for all the endpoints
+/**
+* @Route("/v1", name="api_v1_")
+*/
 
 class ExpenseController extends AbstractController
 {
@@ -27,7 +32,7 @@ class ExpenseController extends AbstractController
 
 	// insert a new object in the db
 	/**
-     * @Route("/add/expense/", name="add_expense", methods={"POST"})
+     * @Route("/expenses/", name="add_expense", methods={"POST"})
      *
      */
 
@@ -36,22 +41,29 @@ class ExpenseController extends AbstractController
     	return($this->ApiServices->add($request->getContent()));
     }
 
-    // this method takes the argument: list (inside the json data),
-    // if list is an integer then. it will consider it as the id of the object to be listed
-    // if list="all", then it will display all the objects "expense" in the db
-    // if list is empty, then it will display all the records also
+    // list all the object "expense" from the database
 	/**
-     * @Route("/list/expenses/", name="list_expenses", methods={"POST"})
+     * @Route("/expenses", name="list_all_expenses", methods={"GET"})
      */
 
-    public function list(Request $request): JsonResponse
+    public function listAll(): JsonResponse
     {
-    	return($this->ApiServices->list($request->getContent()));
+    	return($this->ApiServices->listAll());
+    }
+
+    // list the details of one object "expense" in the database (starting from the value of ID)
+	/**
+     * @Route("/expenses/{id}", name="list_one_expenses", methods={"GET"})
+     */
+
+    public function listOne($id): JsonResponse
+    {
+    	return($this->ApiServices->listOne($id));
     }
 
     // this method should update a given object "expense" in the db , it takes only the id for the object
 	/**
-	 * @Route("/expenses/update/{id}/", name="update_expense", methods={"PUT"})
+	 * @Route("/expenses/{id}", name="update_expense", methods={"PUT"})
 	 */
 	public function update($id, Request $request): JsonResponse
 	{
@@ -60,7 +72,7 @@ class ExpenseController extends AbstractController
 
 	// this method deletes a given object "expense" from the db , it takes only the id for the object
 	/**
-	 * @Route("/expenses/delete/{id}/", name="delete_expense", methods={"DELETE"})
+	 * @Route("/expenses/{id}", name="delete_expense", methods={"DELETE"})
 	 */
 	public function delete($id): JsonResponse
 	{
